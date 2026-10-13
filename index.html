@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fix the Broken Platform: Gestalt principles activity</title>
+<style>
+:root{--ink:#17202e;--mute:#566275;--line:#cfd6e2;--bg:#f2f4f8;--acc:#2b4bdb;--ok:#17704a;--bad:#a8321f;--okbg:#e4f4ec;--badbg:#fbe9e5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Avenir Next","Segoe UI",system-ui,sans-serif}
+.top{padding:20px 20px 4px;max-width:1180px;margin:0 auto}
+.top h1{margin:0 0 4px;font-size:1.6rem;line-height:1.2}
+.top p{margin:0;color:var(--mute);max-width:70ch}
+.wrap{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;max-width:1180px;margin:0 auto;padding:16px 20px 32px}
+@media(max-width:880px){.wrap{grid-template-columns:1fr}}
+.tool{background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.bar strong{font-size:.95rem}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--acc);background:var(--acc);color:#fff;padding:8px 14px;font-weight:600}
+button.ghost{background:#fff;color:var(--acc)}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid #f2a900;outline-offset:2px}
+details{margin-top:10px;font-size:.9rem;color:var(--mute)}
+summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.seg{display:flex;gap:4px;margin:0 0 10px;padding:0;list-style:none}
+.seg li{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.seg li.done{background:var(--ok)}.seg li.cur{background:var(--acc)}
+.panel h2{margin:2px 0 6px;font-size:1.25rem;line-height:1.25}
+.panel p{margin:0 0 12px}
+.panel .meta{color:var(--mute);font-size:.9rem;margin:0}
+fieldset{border:1px solid var(--line);border-radius:6px;margin:0 0 12px;padding:10px 12px}
+legend{font-weight:700;font-size:.92rem;padding:0 4px}
+.ctl{margin:8px 0}.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:.92rem;margin-bottom:2px}
+.ctl input[type=range]{width:100%}
+.ctl select{width:100%;font:inherit;padding:6px;border-radius:6px;border:1px solid var(--line)}
+.ctl output{font-variant-numeric:tabular-nums;color:var(--mute)}
+.rad{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+@media(max-width:480px){.rad{grid-template-columns:1fr}}
+.rad label{font-size:.92rem;display:flex;gap:6px;align-items:center}
+textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:6px;padding:8px;min-height:68px;resize:vertical}
+.fb{margin:12px 0 0;padding:10px 12px;border-radius:6px;font-size:.93rem}
+.fb:empty{display:none}
+.fb.ok{background:var(--okbg);border-left:4px solid var(--ok)}
+.fb.no{background:var(--badbg);border-left:4px solid var(--bad)}
+.fb p{margin:0 0 6px}.fb p:last-child{margin:0}
+.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:8px 0 12px}
+th,td{border-bottom:1px solid var(--line);text-align:left;padding:6px 6px;vertical-align:top}
+
+/* ---- The mock platform (intentionally rough) ---- */
+.mock{position:relative;border:1px solid #9aa4b5;border-radius:4px;overflow:hidden;background:#fff;font:13px/1.25 Verdana,"Trebuchet MS",sans-serif;color:#222;min-height:540px}
+.m-head{background:#e9e4f5;padding:9px 12px;font-weight:700;border-bottom:1px solid #bbb}
+.m-head span{font-weight:400;margin-left:10px;color:#555}
+.m-body{display:grid;grid-template-columns:150px 1fr;gap:18px;padding:14px}
+.reg.target{outline:3px dashed var(--acc);outline-offset:5px}
+.grp{display:flex;flex-direction:column;gap:var(--gw)}
+.grp+.grp{margin-top:var(--gb)}
+.m-body main{display:flex;flex-direction:column;gap:20px;min-width:0}
+.m-body h4{margin:0 0 6px;font-size:13px}
+.path{list-style:none;margin:0;padding:0;position:relative}
+.path.line::before{content:"";position:absolute;left:10px;top:11px;bottom:22px;width:2px;background:#2b4bdb}
+.path li{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding-left:calc(var(--j) * (1 - var(--al)));position:relative}
+.path i{width:22px;height:22px;border-radius:50%;background:#2b4bdb;color:#fff;font-style:normal;font-size:11px;display:grid;place-items:center;flex:none}
+.wk{display:flex;justify-content:space-between;align-items:center;padding:5px 0;gap:8px}
+.lnk{text-decoration:underline;color:#222}
+.btn{color:#fff;padding:4px 10px;border-radius:4px;font-weight:700;white-space:nowrap}
+.ic{display:flex;gap:22px}.ic div{text-align:center;font-size:12px}
+.m-dim{position:absolute;inset:0;background:#000;opacity:var(--dim);display:none}
+.dialog{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:min(300px,86%);background:#fff;border:1px solid #d5d5d5;border-radius:8px;padding:16px;display:none}
+.dialog.shadow{box-shadow:0 14px 40px rgba(0,0,0,.45)}
+.dialog h4{margin:0 0 6px;font-size:15px}.dialog p{margin:0 0 12px}
+.dialog .btn{display:inline-block;margin-right:6px}
+.show-d .m-dim,.show-d .dialog{display:block}
+@media(max-width:560px){.m-body{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Fix the Broken Platform</h1>
+  <p>A university is redesigning its online learning platform. The design team wants Gestalt principles to organise information, direct attention and make it easier to navigate. You are the designer: repair five problems, then name the principle that did the work.</p>
+</header>
+
+<div class="wrap">
+  <section class="tool" aria-label="Platform mock-up">
+    <div class="bar">
+      <strong>Course page mock-up</strong>
+      <button class="ghost" id="tog" aria-pressed="false">Show original</button>
+    </div>
+    <div class="mock" id="mock" aria-hidden="true"></div>
+    <details open>
+      <summary>Text description of the page</summary>
+      <p id="desc"></p>
+    </details>
+  </section>
+
+  <section class="tool panel" id="panel" aria-label="Repair controls"></section>
+</div>
+
+<script>
+const COL={indigo:'#2b4bdb',green:'#17704a',orange:'#c2570c',red:'#c0282d'};
+const NAME={indigo:'indigo',green:'green',orange:'orange',red:'red'};
+const ORIG={gw:22,gb:22,c0:'red',c1:'green',c2:'orange',gap:26,dim:0,shadow:false,al:0,line:false};
+let S={...ORIG},step=0,showOrig=false,results=[],tries=0,done=false;
+
+const PR={
+ proximity:['Proximity','Elements close together tend to be grouped.'],
+ similarity:['Similarity','Similar elements tend to be grouped.'],
+ closure:['Closure','Incomplete forms may be perceived as complete.'],
+ continuity:['Continuity','Smooth, continuous patterns are preferred.'],
+ figure:['Figure-ground','Some information becomes the object of focus while the remainder becomes background.']
+};
+
+const STEPS=[
+ {t:'Course navigation',reg:'r1',pr:'proximity',
+  p:'The nine navigation links are spaced evenly, so they read as one long list. They really belong to three groups: Content (Overview, Readings, Lectures), Assessment (Quizzes, Assignments, Grades) and Support (Help, Contact tutor, Tech support). Use spacing only.',
+  ctl:()=>rng('gw','Space between links in a group',2,30,1,'px')+rng('gb','Space between groups',2,70,1,'px'),
+  chk:s=>{const m=[];if(s.gw>12)m.push('Links in the same group are still far apart.');if(s.gb<Math.max(s.gw*2,24))m.push('The gap between groups needs to be clearly larger than the gap inside a group.');return m},
+  why:'Spacing alone created three clusters. No borders or colours were added, which is what separates proximity from similarity.'},
+ {t:'Buttons that do things',reg:'r2',pr:'similarity',
+  p:'Students scan "This week" for things they can act on. The three action buttons (Start quiz, Submit, Join live) each have a different colour, while the plain "Open" links are just text. Make the actions look like one family.',
+  ctl:()=>sel('c0','Start quiz button',{indigo:'Indigo',green:'Green',orange:'Orange',red:'Red'})+sel('c1','Submit button',{indigo:'Indigo',green:'Green',orange:'Orange',red:'Red'})+sel('c2','Join live button',{indigo:'Indigo',green:'Green',orange:'Orange',red:'Red'}),
+  chk:s=>(s.c0==s.c1&&s.c1==s.c2)?[]:['The three action buttons still differ. Matching colour signals "same kind of thing".'],
+  why:'A shared colour and shape tells the viewer these items have the same function, and the underlined "Open" links stay visibly different. Colour should not be the only cue in a real design, so add icons or labels too.'},
+ {t:'Activity icons',reg:'r3',pr:'closure',
+  p:'Each activity type (Readings, Quizzes, Discussions) has a circular icon, but the outlines have such big gaps that they look like broken fragments. The design team wants a light look that uses less ink than a fully closed circle, yet still reads as a complete shape. Adjust the gap.',
+  ctl:()=>rng('gap','Gap in each outline',0,40,1,'px'),
+  chk:s=>s.gap==0?['A fully closed circle is easy to read, but it is not using closure. Open the outline slightly.']:s.gap>9?['The gaps are still so large that the shapes look broken. Viewers can only complete a form when the missing part is small.']:[],
+  why:'A small gap is filled in by the viewer, so the icon reads as a complete circle with less ink. Too small and you are not using closure at all; too large and the viewer can no longer complete the form.'},
+ {t:'Confirmation dialog',reg:null,pr:'figure',
+  p:'A "Withdraw from course?" dialog appears over a busy page, but it blends into the page behind it, so students can miss it or click the wrong thing. Make the dialog stand out as the thing that needs a decision.',
+  ctl:()=>rng('dim','Dim the page behind',0,80,5,'%')+chk('shadow','Lift the dialog with a shadow'),
+  chk:s=>{const m=[];if(s.dim<40)m.push('The page behind still competes for attention. Dim it more.');if(!s.shadow)m.push('The dialog still looks flat against its background.');return m},
+  why:'Dimming pushes the page back into the ground and the shadow lifts the dialog forward as the figure. That directs attention to one decision.'},
+ {t:'Course path',reg:'r5',pr:'continuity',
+  p:'The four modules are meant to be a route through the course, but the markers are scattered left and right and nothing joins them. Make it read as one path.',
+  ctl:()=>rng('al','Align the steps',0,100,5,'%')+chk('line','Show a path line through the steps'),
+  chk:s=>{const m=[];if(s.al<90)m.push('The steps are still staggered.');if(!s.line)m.push('Nothing connects the steps yet.');return m},
+  why:'Aligned markers joined by a line form a single smooth path that the eye follows from Module 1 to Module 4.'}
+];
+
+function rng(k,l,a,b,st,u){return `<div class="ctl"><label for="${k}">${l} <output id="o_${k}">${S[k]}${u}</output></label><input type="range" id="${k}" data-k="${k}" data-u="${u}" min="${a}" max="${b}" step="${st}" value="${S[k]}"></div>`}
+function sel(k,l,o){return `<div class="ctl"><label for="${k}">${l}</label><select id="${k}" data-k="${k}">${Object.entries(o).map(([v,t])=>`<option value="${v}"${S[k]==v?' selected':''}>${t}</option>`).join('')}</select></div>`}
+function chk(k,l){return `<div class="ctl"><label><span><input type="checkbox" id="${k}" data-k="${k}"${S[k]?' checked':''}> ${l}</span></label></div>`}
+
+const D=()=>showOrig?ORIG:S;
+
+const GL={r:'M20 24h16M20 30h16M20 36h10',q:'M20 31l6 6 11-12',d:'M19 23h18v12H28l-5 5v-5h-4z'};
+const icon=(k,l,g)=>{const C=125.66;return `<div><svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="20" fill="none" stroke="#2b4bdb" stroke-width="3" stroke-dasharray="${C-g} ${g}" transform="rotate(-60 28 28)"/><path d="${GL[k]}" fill="none" stroke="#2b4bdb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><br>${l}</div>`};
+function renderMock(){
+  const s=D(),el=document.getElementById('mock'),cur=STEPS[step];
+  const g=(a)=>`<div class="grp">${a.map(x=>`<span class="lnk">${x}</span>`).join('')}</div>`;
+  const j=[30,-4,44,12];
+  el.className='mock'+((!done&&step==3)?' show-d':'');
+  el.style.cssText=`--gw:${s.gw}px;--gb:${s.gb}px;--dim:${s.dim/100};--al:${s.al/100}`;
+  el.innerHTML=`<div class="m-head">Campus Learn<span>PSY101 · Introduction to Perception</span></div>
+  <div class="m-body">
+   <nav id="r1" class="reg${!done&&cur.reg=='r1'?' target':''}">${g(['Overview','Readings','Lectures'])}${g(['Quizzes','Assignments','Grades'])}${g(['Help','Contact tutor','Tech support'])}</nav>
+   <main>
+    <section id="r5" class="reg${!done&&cur.reg=='r5'?' target':''}"><h4>Course path</h4><ol class="path${s.line?' line':''}">${['Perception basics','Gestalt principles','Attention','Memory'].map((n,i)=>`<li style="--j:${j[i]}px"><i>${i+1}</i>${n}</li>`).join('')}</ol></section>
+    <section id="r2" class="reg${!done&&cur.reg=='r2'?' target':''}"><h4>This week</h4>
+     <div class="wk"><span>Week 4 reading</span><span class="lnk">Open</span></div>
+     <div class="wk"><span>Lecture slides</span><span class="lnk">Open</span></div>
+     <div class="wk"><span>Quiz 2</span><span class="btn" style="background:${COL[s.c0]}">Start quiz</span></div>
+     <div class="wk"><span>Assignment 1</span><span class="btn" style="background:${COL[s.c1]}">Submit</span></div>
+     <div class="wk"><span>Live tutorial</span><span class="btn" style="background:${COL[s.c2]}">Join live</span></div></section>
+    <section id="r3" class="reg${!done&&cur.reg=='r3'?' target':''}"><h4>Activity types</h4><div class="ic">${icon('r','Readings',s.gap)}${icon('q','Quizzes',s.gap)}${icon('d','Discussions',s.gap)}</div></section>
+   </main></div>
+   <div class="m-dim"></div>
+   <div class="dialog${s.shadow?' shadow':''}"><h4>Withdraw from PSY101?</h4><p>This will remove you from the course.</p><span class="btn" style="background:#c0282d">Withdraw</span><span class="btn" style="background:#666">Keep course</span></div>`;
+  describe();
+}
+
+function describe(){
+  const s=D(),d=document.getElementById('desc'),i=done?-1:step;let t;
+  const cl=(a,b)=>`${a} ${b}`;
+  const parts=[
+   `Navigation: nine links in three groups of three (Content, Assessment, Support). Space inside groups is ${s.gw}px and between groups ${s.gb}px, so the links read as ${s.gb>=Math.max(s.gw*2,24)&&s.gw<=12?'three separate clusters':'one long list'}.`,
+   `This week: two plain underlined "Open" links, then three action buttons coloured ${NAME[s.c0]} (Start quiz), ${NAME[s.c1]} (Submit) and ${NAME[s.c2]} (Join live). ${s.c0==s.c1&&s.c1==s.c2?'The buttons match each other.':'The buttons do not all match.'}`,
+   `Activity types: three circular icons (Readings, Quizzes, Discussions), each outline with a ${s.gap}px gap, so they read as ${s.gap==0?'fully closed circles':s.gap<=9?'complete circles drawn with less ink':'broken, incomplete shapes'}.`,
+   `A "Withdraw from PSY101?" dialog sits over the page. The page behind is dimmed ${s.dim}% and the dialog ${s.shadow?'has a shadow':'has no shadow'}.`,
+   `Course path: four modules (Perception basics, Gestalt principles, Attention, Memory). Alignment is ${s.al}% and ${s.line?'a line joins the steps':'no line joins the steps'}.`];
+  d.textContent=(showOrig?'Original version. ':'')+(i<0?parts.join(' '):parts[i]);
+}
+
+function renderPanel(){
+  const p=document.getElementById('panel'),st=STEPS[step];tries=0;done=false;
+  const seg=STEPS.map((_,i)=>`<li class="${i<step?'done':i==step?'cur':''}"></li>`).join('');
+  p.innerHTML=`<ul class="seg" aria-hidden="true">${seg}</ul>
+  <p class="meta">Repair ${step+1} of ${STEPS.length}</p>
+  <h2>${st.t}</h2><p>${st.p}</p>
+  <fieldset><legend>1. Make the fix</legend><div id="ctl">${st.ctl()}</div></fieldset>
+  <fieldset><legend>2. Which principle did your fix use?</legend><div class="rad">${Object.entries(PR).map(([k,v])=>`<label><input type="radio" name="pr" value="${k}"> ${v[0]}</label>`).join('')}</div></fieldset>
+  <label for="why" style="font-weight:700;font-size:.92rem">3. In a sentence, why does it work?</label>
+  <textarea id="why" placeholder="Describe what changed and how it affects what a student perceives."></textarea>
+  <div class="row"><button id="check">Check my fix</button><button id="next" class="ghost" hidden>${step==STEPS.length-1?'See summary':'Next repair'}</button></div>
+  <div class="fb" id="fb" role="status" aria-live="polite"></div>`;
+  document.getElementById('check').onclick=check;
+  document.getElementById('next').onclick=()=>{step++;step>=STEPS.length?summary():(renderPanel(),renderMock())};
+  renderMock();
+}
+
+document.addEventListener('input',e=>{
+  const k=e.target.dataset&&e.target.dataset.k;if(!k)return;
+  const v=e.target.type=='checkbox'?e.target.checked:e.target.type=='range'?+e.target.value:e.target.value;
+  S[k]=v;const o=document.getElementById('o_'+k);if(o)o.textContent=v+(e.target.dataset.u||'');
+  if(showOrig){showOrig=false;tg()}renderMock();
+});
+
+function check(){
+  const st=STEPS[step],fb=document.getElementById('fb'),pick=document.querySelector('input[name=pr]:checked'),why=document.getElementById('why').value.trim();
+  if(!pick){fb.className='fb no';fb.innerHTML='<p>Choose the principle you think your fix used.</p>';return}
+  const probs=st.chk(S),prOK=pick.value==st.pr,wOK=why.length>=12;tries++;
+  let msgs=[];
+  if(probs.length)msgs.push(...probs.map(m=>`<p>${m}</p>`));
+  if(!prOK)msgs.push(`<p>${PR[pick.value][0]} is the idea that: ${PR[pick.value][1].toLowerCase()} Check what your changes actually did to the page.</p>`);
+  if(!wOK&&!probs.length&&prOK)msgs.push('<p>Add a sentence explaining why it works, using what a student would perceive.</p>');
+  if(!msgs.length){
+    finish(pick.value,why,true);
+    fb.className='fb ok';fb.innerHTML=`<p><strong>Fixed.</strong> ${PR[st.pr][0]}: ${PR[st.pr][1]}</p><p>${st.why}</p>`;return}
+  fb.className='fb no';fb.innerHTML=msgs.join('');
+  if(tries>=3){fb.innerHTML+=`<p><strong>Answer:</strong> ${PR[st.pr][0]}. ${st.why}</p>`;finish(pick.value,why,false)}
+}
+function finish(pick,why,ok){
+  const st=STEPS[step];
+  if(!results[step])results[step]={t:st.t,pr:st.pr,pick,why,ok:ok&&tries==1,solved:ok};
+  document.getElementById('next').hidden=false;document.getElementById('check').disabled=true;
+  document.getElementById('next').focus();
+}
+
+function summary(){
+  done=true;showOrig=false;tg();renderMock();
+  const sc=results.filter(r=>r.ok).length;
+  const txt=results.map((r,i)=>`${i+1}. ${r.t}: ${PR[r.pick][0]} ${r.pick==r.pr?'(correct)':'(expected '+PR[r.pr][0]+')'}. ${r.why}`).join('\n');
+  document.getElementById('panel').innerHTML=`<h2>Redesign complete</h2>
+  <p>You got <strong>${sc} of ${STEPS.length}</strong> right on the first try. Use "Show original" on the left to compare your version with the broken one.</p>
+  <table><thead><tr><th>Repair</th><th>Your principle</th><th>Your reason</th></tr></thead><tbody>${results.map(r=>`<tr><td>${r.t}</td><td>${PR[r.pick][0]}${r.pick==r.pr?'':' (expected '+PR[r.pr][0]+')'}</td><td>${esc(r.why)}</td></tr>`).join('')}</tbody></table>
+  <label for="refl" style="font-weight:700;font-size:.92rem">Reflection: could the same techniques be used to mislead users? Give one example.</label>
+  <textarea id="refl" placeholder="For example, which button would you make the figure in a cancellation flow, and why?"></textarea>
+  <div class="row"><button id="cp">Copy summary</button><button class="ghost" id="again">Start again</button></div>
+  <div class="fb" id="fb" role="status" aria-live="polite"></div>
+  <label for="out" style="font-weight:700;font-size:.92rem;display:block;margin-top:10px">Summary to submit</label>
+  <textarea id="out" readonly style="min-height:130px"></textarea>`;
+  const out=document.getElementById('out'),refl=document.getElementById('refl');
+  const build=()=>out.value=`Gestalt activity: Fix the Broken Platform\nFirst-try score: ${sc}/${STEPS.length}\n\n${txt}\n\nReflection: ${refl.value.trim()||'(none)'}`;
+  build();refl.addEventListener('input',build);
+  document.getElementById('cp').onclick=()=>{build();out.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+    const f=document.getElementById('fb');f.className='fb '+(ok?'ok':'no');f.textContent=ok?'Copied.':'Copy blocked here. Select the text below and copy it manually.'};
+  document.getElementById('again').onclick=()=>{S={...ORIG};step=0;results=[];done=false;renderPanel()};
+}
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+const tb=document.getElementById('tog');
+function tg(){tb.textContent=showOrig?'Show my version':'Show original';tb.setAttribute('aria-pressed',showOrig)}
+tb.onclick=()=>{showOrig=!showOrig;tg();renderMock()};
+renderPanel();
+</script>
+</body>
+</html>
